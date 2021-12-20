@@ -1,0 +1,30 @@
+---
+- ansible.builtin.import_playbook: update.yml
+
+- name : VRFs
+  gather_facts: false
+  hosts: all
+  vars:
+    - aci_login: &mso_login
+        hostname: "{{ ansible_host }}"
+        username: "{{ ansible_user }}"
+        password: "{{ ansible_password }}"
+        validate_certs: "{{ validate_certs }}"
+  tasks:
+ 
+    - name: Add a new VRF
+      cisco.mso.mso_schema_template_vrf_dcnm:
+        <<: *mso_login
+        schema: "{{ item.schema_name }}"
+        template: "{{ item.template_name }}"
+        vrf: "{{ item.name }}"
+        state: "{{ item.status if item.status is defined else omit }}"
+        vrf_id: "{{ item.vrf_id | int if item.vrf_id is defined and item.vrf_id != '' else omit }}"
+        vrf_profile : "{{ item.vrf_profile if item.vrf_profile is defined and item.vrf_profile != '' else omit }}"
+        vrf_extension_profile: "{{ item.vrf_extension_profile if item.vrf_extension_profile is defined and item.vrf_extension_profile != '' else omit }}"
+        loopback_routing_tag: "{{ item.loopback_routing_tag | int if item.loopback_routing_tag is defined and item.loopback_routing_tag != '' else omit }}"
+        redistribute_direct_route_map: "{{ item.redistribute_direct_route_map if item.redistribute_direct_route_map is defined and item.redistribute_direct_route_map != '' else omit }}"
+        disable_rt_auto_generate: "{{ item.disable_rt_auto_generate if item.disable_rt_auto_generate is defined and item.disable_rt_auto_generate != '' else omit }}"
+      delegate_to: localhost
+      loop: "{{ vrf }}"
+      when: vrf is defined

@@ -1,0 +1,41 @@
+---
+- ansible.builtin.import_playbook: update.yml
+
+- name : Bridge Domains
+  gather_facts: false
+  hosts: all
+  vars:
+    - aci_login: &mso_login
+        hostname: "{{ ansible_host }}"
+        username: "{{ ansible_user }}"
+        password: "{{ ansible_password }}"
+        validate_certs: "{{ validate_certs }}"
+  tasks:
+
+    - name: Add a new Network
+      cisco.mso.mso_schema_template_network_dcnm:
+        <<: *mso_login
+        schema: "{{ item.schema_name }}"
+        template: "{{ item.template_name }}"
+        network: "{{ item.name }}"
+        vrf:
+          name: "{{ item.vrf_name  }}"
+          schema: "{{ item.vrf_schema_name }}"
+          template: "{{ item.vrf_template_name }}"
+        network_id: "{{ item.network_id if item.network_id is defined and item.network_id != '' else omit }}"
+        layer2_only: "{{ item.layer2_only if item.layer2_only is defined and item.layer2_only != '' else omit }}"
+        network_profile: "{{ item.network_profile if item.network_profile is defined and item.network_profile != '' else omit }}"
+        network_extension_profile: "{{ item.network_extension_profile if item.network_extension_profile is defined and item.network_extension_profile != '' else omit}}"
+        vlan_name: "{{ item.vlan_name if item.vlan_name is defined and item.vlan_name != '' else omit }}"
+        vlan_id: "{{ item.vlan_id if item.vlan_id is defined and item.vlan_id != '' else omit }}"
+        gateway_ip: "{{ item.gateway_ip }}"
+        suppress_arp: "{{ item.suppress_arp if item.suppress_arp is defined and item.suppress_arp != '' else omit }}"
+        svi_description: "{{ item.svi_description if item.svi_description is defined and item.svi_description != '' else omit }}"
+        mtu: "{{ item.mtu | int  if item.mtu is defined and item.mtu != '' else omit }}"
+        routing_tag: "{{ item.routing_tag | int if item.routing_tag is defined and item.routing_tag != '' else omit }}"
+        state: "{{ item.status if item.status is defined else omit }}"
+      delegate_to: localhost
+      loop: "{{ network }}"
+      when: network is defined
+
+

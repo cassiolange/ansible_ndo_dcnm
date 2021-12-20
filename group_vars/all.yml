@@ -1,0 +1,2 @@
+validate_certs: false
+use_ssl: false
