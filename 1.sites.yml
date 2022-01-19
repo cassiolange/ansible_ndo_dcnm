@@ -60,7 +60,7 @@
               "username": "{{ item.controller_username }}",
               "platformType": "Dcnm",
               "siteVersion": "{{ item.controller_password }}",
-              "siteId": "{{ item.site_id}}"
+              "siteId": "{{ item.site_id | int }}"
             },
             "health": { },
             "apic": { },
