@@ -28,3 +28,28 @@
       delegate_to: localhost
       loop: "{{ vrf }}"
       when: vrf is defined
+
+    - name: Add a new site VRF
+      cisco.mso.mso_schema_site_vrf:
+        <<: *mso_login
+        schema: "{{ item.vrf_schema_name }}"
+        template: "{{ item.vrf_template_name }}"
+        vrf: "{{ item.vrf_name }}"
+        site: "{{ item.site }}"
+        state: "{{ item.status if item.status is defined else omit }}"
+      delegate_to: localhost
+      loop: "{{ vrf_site_association }}"
+      when: vrf_site_association is defined
+
+    - name: Associate Switch to Vrf
+      cisco.mso.mso_schema_site_vrf_switch_dcnm:
+        <<: *mso_login
+        schema: "{{ item.vrf_schema_name }}"
+        template: "{{ item.vrf_template_name }}"
+        vrf: "{{ item.vrf_name }}"
+        site: "{{ item.site }}"
+        switch_serial_number: "{{ item.switch_serial_number }}"
+        state: "{{ item.status if item.status is defined else omit }}"
+      delegate_to: localhost
+      loop: "{{ vrf_site_switch_association }}"
+      when: vrf_site_switch_association is defined
