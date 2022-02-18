@@ -27,7 +27,7 @@
         network_profile: "{{ item.network_profile if item.network_profile is defined and item.network_profile != '' else omit }}"
         network_extension_profile: "{{ item.network_extension_profile if item.network_extension_profile is defined and item.network_extension_profile != '' else omit}}"
         vlan_name: "{{ item.vlan_name if item.vlan_name is defined and item.vlan_name != '' else omit }}"
-        vlan_id: "{{ item.vlan_id if item.vlan_id is defined and item.vlan_id != '' else omit }}"
+        vlan_id: "{{ item.vlan_id | int  if item.vlan_id is defined and item.vlan_id != '' else omit }}"
         gateway_ip: "{{ item.gateway_ip }}"
         suppress_arp: "{{ item.suppress_arp if item.suppress_arp is defined and item.suppress_arp != '' else omit }}"
         svi_description: "{{ item.svi_description if item.svi_description is defined and item.svi_description != '' else omit }}"
@@ -37,5 +37,47 @@
       delegate_to: localhost
       loop: "{{ network }}"
       when: network is defined
+
+    - name: Associate Network with site
+      cisco.mso.mso_schema_site_network_dcnm:
+        <<: *mso_login
+        schema: "{{ item.network_schema_name }}"
+        template: "{{ item.network_template_name }}"
+        network: "{{ item.network_name }}"
+        site: "{{ item.site }}"
+        enable_l3_border_gw: "{{ item.enable_l3_border_gateway }}"
+        dhcp_lo_id: "{{ item.dhcp_loopback_id | int }}"
+        state: "{{ item.status if item.status is defined else omit }}"
+      delegate_to: localhost
+      loop: "{{ network_site_association }}"
+      when: network_site_association is defined
+
+    - name: Associate Network to Switch
+      cisco.mso.mso_schema_site_network_switch_dcnm:
+        <<: *mso_login
+        schema: "{{ item.network_schema_name }}"
+        template: "{{ item.network_template_name }}"
+        network: "{{ item.network_name }}"
+        site: "{{ item.site }}"
+        switch_serial_number: "{{ item.switch_serial_number }}"
+        state: "{{ item.status if item.status is defined else omit }}"
+      delegate_to: localhost
+      loop: "{{ network_site_switch_association }}"
+      when: network_site_switch_association is defined
+
+    - name: Associate DHCP Network
+      cisco.mso.mso_schema_site_network_dhcp_dcnm:
+        <<: *mso_login
+        schema: "{{ item.network_schema_name }}"
+        template: "{{ item.network_template_name }}"
+        network: "{{ item.network_name }}"
+        site: "{{ item.site }}"
+        dhcp_address: "{{ item.dhcp_address }}"
+        dhcp_vrf: "{{ item.dhcp_vrf }}"
+        state: present
+      delegate_to: localhost
+      loop: "{{ network_site_dhcp_association }}"
+      when: network_site_dhcp_association is defined
+
 
 
