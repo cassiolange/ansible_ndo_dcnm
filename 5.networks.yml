@@ -1,5 +1,5 @@
 ---
-- ansible.builtin.import_playbook: update.yml
+#- ansible.builtin.import_playbook: update.yml
 
 - name : Bridge Domains
   gather_facts: false
@@ -60,6 +60,7 @@
         network: "{{ item.network_name }}"
         site: "{{ item.site }}"
         switch_serial_number: "{{ item.switch_serial_number }}"
+        interface: "{{ item.interface if item.interface is defined else omit }}"
         state: "{{ item.status if item.status is defined else omit }}"
       delegate_to: localhost
       loop: "{{ network_site_switch_association }}"
