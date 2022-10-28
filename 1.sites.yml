@@ -4,17 +4,11 @@
 - name : Add Site
   gather_facts: false
   hosts: all
-  vars:
-    - aci_login: &mso_login
-        hostname: "{{ ansible_host }}"
-        username: "{{ ansible_user }}"
-        password: "{{ ansible_password }}"
-        validate_certs: "{{ validate_certs }}"
+
   tasks:
 
     - name: Add a new DCNM site
       cisco.mso.mso_rest:
-        <<: *mso_login
         path: "/api/config/v2/addsite/"
         method: post
         content:
@@ -36,7 +30,6 @@
             },
             "securityDomains": [ ]
           }
-      delegate_to: localhost
       loop: "{{ site }}"
       when: site is defined
       loop_control:
@@ -45,7 +38,6 @@
 
     - name: Configure site as Managed by MSO
       cisco.mso.mso_rest:
-        <<: *mso_login
         path: "/mso/api/v2/sites/manage"
         method: post
         content:
@@ -68,6 +60,5 @@
               "fabricName": "{{ item.name }}",
             }
           }
-      delegate_to: localhost
       loop: "{{ site }}"
       when: site is defined
