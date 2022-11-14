@@ -1,6 +1,6 @@
 config = [
     {
-        'excel' : 'build_mso.xlsx',
+        'excel' : 'build_mso_prod.xlsx',
         'output_dir' : './'
     },
 ]

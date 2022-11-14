@@ -1,14 +1,20 @@
 ---
-#- ansible.builtin.import_playbook: update.yml
+- ansible.builtin.import_playbook: update.yml
 
 - name : Bridge Domains
   gather_facts: false
   hosts: all
-
+  vars:
+    - aci_login: &mso_login
+        hostname: "{{ ansible_host }}"
+        username: "{{ ansible_user }}"
+        password: "{{ ansible_password }}"
+        validate_certs: "{{ validate_certs }}"
   tasks:
 
     - name: Add a new Network
       cisco.mso.mso_schema_template_network_dcnm:
+        <<: *mso_login
         schema: "{{ item.schema_name }}"
         template: "{{ item.template_name }}"
         network: "{{ item.name }}"
@@ -28,11 +34,13 @@
         mtu: "{{ item.mtu | int  if item.mtu is defined and item.mtu != '' else omit }}"
         routing_tag: "{{ item.routing_tag | int if item.routing_tag is defined and item.routing_tag != '' else omit }}"
         state: "{{ item.status if item.status is defined else omit }}"
+      delegate_to: localhost
       loop: "{{ network }}"
       when: network is defined
 
     - name: Associate Network with site
       cisco.mso.mso_schema_site_network_dcnm:
+        <<: *mso_login
         schema: "{{ item.network_schema_name }}"
         template: "{{ item.network_template_name }}"
         network: "{{ item.network_name }}"
@@ -40,11 +48,13 @@
         enable_l3_border_gw: "{{ item.enable_l3_border_gateway }}"
         dhcp_lo_id: "{{ item.dhcp_loopback_id | int }}"
         state: "{{ item.status if item.status is defined else omit }}"
+      delegate_to: localhost
       loop: "{{ network_site_association }}"
       when: network_site_association is defined
 
     - name: Associate Network to Switch
       cisco.mso.mso_schema_site_network_switch_dcnm:
+        <<: *mso_login
         schema: "{{ item.network_schema_name }}"
         template: "{{ item.network_template_name }}"
         network: "{{ item.network_name }}"
@@ -52,6 +62,7 @@
         switch_serial_number: "{{ item.switch_serial_number }}"
         interface: "{{ item.interface if item.interface is defined else omit }}"
         state: "{{ item.status if item.status is defined else omit }}"
+      delegate_to: localhost
       loop: "{{ network_site_switch_association }}"
       when: network_site_switch_association is defined
 
@@ -64,7 +75,7 @@
         site: "{{ item.site }}"
         dhcp_address: "{{ item.dhcp_address }}"
         dhcp_vrf: "{{ item.dhcp_vrf }}"
-        state: present
+        state: "{{ item.status if item.status is defined else omit }}"
       delegate_to: localhost
       loop: "{{ network_site_dhcp_association }}"
       when: network_site_dhcp_association is defined

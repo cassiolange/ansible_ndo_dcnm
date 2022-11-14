@@ -4,10 +4,17 @@
 - name : VRFs
   gather_facts: false
   hosts: all
+  vars:
+    - aci_login: &mso_login
+        hostname: "{{ ansible_host }}"
+        username: "{{ ansible_user }}"
+        password: "{{ ansible_password }}"
+        validate_certs: "{{ validate_certs }}"
   tasks:
- 
+
     - name: Add a new VRF
       cisco.mso.mso_schema_template_vrf_dcnm:
+        <<: *mso_login
         schema: "{{ item.schema_name }}"
         template: "{{ item.template_name }}"
         vrf: "{{ item.name }}"
@@ -18,26 +25,31 @@
         loopback_routing_tag: "{{ item.loopback_routing_tag | int if item.loopback_routing_tag is defined and item.loopback_routing_tag != '' else omit }}"
         redistribute_direct_route_map: "{{ item.redistribute_direct_route_map if item.redistribute_direct_route_map is defined and item.redistribute_direct_route_map != '' else omit }}"
         disable_rt_auto_generate: "{{ item.disable_rt_auto_generate if item.disable_rt_auto_generate is defined and item.disable_rt_auto_generate != '' else omit }}"
+      delegate_to: localhost
       loop: "{{ vrf }}"
       when: vrf is defined
 
     - name: Add a new site VRF
       cisco.mso.mso_schema_site_vrf:
+        <<: *mso_login
         schema: "{{ item.vrf_schema_name }}"
         template: "{{ item.vrf_template_name }}"
         vrf: "{{ item.vrf_name }}"
         site: "{{ item.site }}"
         state: "{{ item.status if item.status is defined else omit }}"
+      delegate_to: localhost
       loop: "{{ vrf_site_association }}"
       when: vrf_site_association is defined
 
     - name: Associate Switch to Vrf
       cisco.mso.mso_schema_site_vrf_switch_dcnm:
+        <<: *mso_login
         schema: "{{ item.vrf_schema_name }}"
         template: "{{ item.vrf_template_name }}"
         vrf: "{{ item.vrf_name }}"
         site: "{{ item.site }}"
         switch_serial_number: "{{ item.switch_serial_number }}"
         state: "{{ item.status if item.status is defined else omit }}"
+      delegate_to: localhost
       loop: "{{ vrf_site_switch_association }}"
       when: vrf_site_switch_association is defined
