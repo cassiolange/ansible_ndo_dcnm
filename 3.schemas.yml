@@ -1,5 +1,5 @@
 ---
-#- ansible.builtin.import_playbook: update.yml
+- ansible.builtin.import_playbook: update.yml
 
 - name : Schemas and Templates
   gather_facts: false
@@ -35,4 +35,3 @@
       delegate_to: localhost
       loop: "{{ template_site_association }}"
       when: template_site_association is defined
-

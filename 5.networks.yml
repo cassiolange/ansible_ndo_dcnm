@@ -74,7 +74,10 @@
         network: "{{ item.network_name }}"
         site: "{{ item.site }}"
         dhcp_address: "{{ item.dhcp_address }}"
-        dhcp_vrf: "{{ item.dhcp_vrf }}"
+        vrf:
+          name: "{{ item.vrf_name  }}"
+          schema: "{{ item.vrf_schema_name }}"
+          template: "{{ item.vrf_template_name }}"
         state: "{{ item.status if item.status is defined else omit }}"
       delegate_to: localhost
       loop: "{{ network_site_dhcp_association }}"
